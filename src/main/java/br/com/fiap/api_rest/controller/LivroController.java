@@ -1,77 +1,95 @@
 package br.com.fiap.api_rest.controller;
 
 import br.com.fiap.api_rest.dto.LivroRequest;
-import br.com.fiap.api_rest.dto.LivroResponse;
+import br.com.fiap.api_rest.dto.LivroResponseDTO;
 import br.com.fiap.api_rest.model.Livro;
 import br.com.fiap.api_rest.repository.LivroRepository;
 import br.com.fiap.api_rest.service.LivroService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/livros")
+@RequestMapping(value = "/livros")
 public class LivroController {
-
     @Autowired
     private LivroRepository livroRepository;
-
     @Autowired
     private LivroService livroService;
 
-    // Criar Livro
+    // CREATE, READ, UPDATE, DELETE
+    // POST, GET, PUT, DELETE
+
     @PostMapping
-    public ResponseEntity<Livro> createLivro(@Valid @RequestBody LivroRequest livroRequest) {
-        Livro livroConvertido = livroService.requestToLivro(livroRequest);
-        Livro livroSalvo = livroRepository.save(livroConvertido); // 🔹 Corrigido possível erro de tipo
-        return new ResponseEntity<>(livroSalvo, HttpStatus.CREATED);
+    public ResponseEntity<Livro> createLivro(@Valid @RequestBody LivroRequest livro) {
+        Livro livroSalvo = livroRepository.save(livroService.requestToLivro(livro));
+        return new ResponseEntity<>(livroSalvo,HttpStatus.CREATED);
     }
 
-    // Buscar todos os livros
     @GetMapping
-    public ResponseEntity<List<LivroResponse>> readLivros() {
-        List<Livro> livros = livroRepository.findAll(); // 🔹 Certifique-se de que o método retorna List<Livro>
-        List<LivroResponse> listaLivros = livros.stream()
-                .map(livroService::livroToResponse)
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(listaLivros, HttpStatus.OK);
+    public ResponseEntity<Page<LivroResponseDTO>> readLivros(@RequestParam(defaultValue = "0") Integer pageNumber) {
+        Pageable pageable = PageRequest
+                .of(pageNumber, 2, Sort.by("autor").ascending()
+                        .and(Sort.by("titulo").ascending()));
+//        Page<LivroResponse> livros = livroService.findAll(pageable);
+//        for (LivroResponse livro : livros) {
+//            livro.setLink(
+//                    linkTo(
+//                            methodOn(LivroController.class)
+//                                    .readLivro(livro.getId())
+//                    ).withSelfRel()
+//            );
+//        }
+        return new ResponseEntity<>(livroService.findAllDTO(pageable), HttpStatus.OK);
     }
 
-    // Buscar um livro por ID
+    // @PathVariable localhost:8080/livros/1
+    // @RequestParam localhost:8080/livros/?id=1
     @GetMapping("/{id}")
-    public ResponseEntity<LivroResponse> readLivro(@PathVariable Long id) {
+    public ResponseEntity<LivroResponseDTO> readLivro(@PathVariable Long id) {
         Optional<Livro> livro = livroRepository.findById(id);
         if (livro.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(livroService.livroToResponse(livro.get()), HttpStatus.OK);
+//        LivroResponse livroResponse = livroService.livroToResponse(livro.get());
+//        livroResponse.setLink(
+//                linkTo(
+//                        methodOn(LivroController.class)
+//                                .readLivros(0)
+//                ).withRel("Lista de Livros")
+//        );
+        LivroResponseDTO livroResponseDTO = livroService.livroToResponseDTO(livro.get(), false);
+        return new ResponseEntity<>(livroResponseDTO,HttpStatus.OK);
     }
 
-    // Atualizar livro por ID
     @PutMapping("/{id}")
-    public ResponseEntity<Livro> updateLivro(@PathVariable Long id, @RequestBody LivroRequest livroRequest) {
+    public ResponseEntity<Livro> updateLivro(@PathVariable Long id,
+                                             @RequestBody LivroRequest livro) {
         Optional<Livro> livroExistente = livroRepository.findById(id);
         if (livroExistente.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
-
-        Livro livroConvertido = livroService.requestToLivro(livroRequest);
-        livroConvertido.setId(livroExistente.get().getId()); // 🔹 Mantém o ID original
-
+        Livro livroConvertido = livroService.requestToLivro(livro);
+        livroConvertido.setId(livroExistente.get().getId());
         Livro livroSalvo = livroRepository.save(livroConvertido);
-        return new ResponseEntity<>(livroSalvo, HttpStatus.OK);
+        return new ResponseEntity<>(livroSalvo,HttpStatus.CREATED);
     }
 
-    // Deletar livro por ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLivro(@PathVariable Long id) {
         livroRepository.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
+
 }

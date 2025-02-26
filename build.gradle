@@ -9,34 +9,24 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21) // ✅ Garante que Java 21 será usado
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
 repositories {
-	mavenCentral() // ✅ Garante que as dependências do Spring Boot sejam baixadas corretamente
+	mavenCentral()
 }
 
 dependencies {
-	// ✅ Spring Boot Web - Para criar APIs REST
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-
-	// ✅ Spring Data JPA - Para trabalhar com banco de dados
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-	// ✅ Validação de dados (Jakarta Validation - Bean Validation)
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-	// ✅ Banco de dados em memória (H2)
-	implementation 'com.h2database:h2' // 🔥 Adicionado para evitar erro de driver
-
-	// ✅ Driver do PostgreSQL (altere se estiver usando outro banco)
-	runtimeOnly 'org.postgresql:postgresql'
-
-	// ✅ Dependências para testes
+	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+	runtimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-	useJUnitPlatform() // ✅ Garante que os testes rodem corretamente no JUnit 5
+	useJUnitPlatform()
 }

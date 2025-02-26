@@ -1,26 +1,17 @@
-<<<<<<< HEAD
-package br.com.fiap.api_rest.model;public class Categoria {
-}
-=======
 package br.com.fiap.api_rest.model;
 
-import jakarta.persistence.*;
+public enum Categoria {
+    ROMANCE("Romance"),
+    FICCAO("Ficção"),
+    FANTASIA("Fantasia");
 
-@Entity
-@Table(name = "categorias")
-public class Categoria {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String descricao;
 
-    @Column(nullable = false, unique = true)
-    private String nome;
+    Categoria(String descricao) {
+        this.descricao = descricao;
+    }
 
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
+    public String getDescricao() {
+        return descricao;
+    }
 }
->>>>>>> 9ebb697 (🚀 Implementação da API REST para gerenciamento de livros)

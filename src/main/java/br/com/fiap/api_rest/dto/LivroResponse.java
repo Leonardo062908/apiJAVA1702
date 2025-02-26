@@ -1,39 +1,38 @@
 package br.com.fiap.api_rest.dto;
 
+import org.springframework.hateoas.Link;
+
 public class LivroResponse {
-    private String titulo;
-    private String autor;
-    private int preco;
+    private Long id;
+    private String infoLivro;
+    private Link link;
 
-    // ✅ Adicione este construtor para aceitar três parâmetros
-    public LivroResponse(String titulo, String autor, int preco) {
-        this.titulo = titulo;
-        this.autor = autor;
-        this.preco = preco;
+    public LivroResponse(Long id, String infoLivro) {
+        this.id = id;
+        this.infoLivro = infoLivro;
     }
 
-    // Getters e Setters
-    public String getTitulo() {
-        return titulo;
+    public Long getId() {
+        return id;
     }
 
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getAutor() {
-        return autor;
+    public String getInfoLivro() {
+        return infoLivro;
     }
 
-    public void setAutor(String autor) {
-        this.autor = autor;
+    public void setInfoLivro(String infoLivro) {
+        this.infoLivro = infoLivro;
     }
 
-    public int getPreco() {
-        return preco;
+    public Link getLink() {
+        return link;
     }
 
-    public void setPreco(int preco) {
-        this.preco = preco;
+    public void setLink(Link link) {
+        this.link = link;
     }
 }

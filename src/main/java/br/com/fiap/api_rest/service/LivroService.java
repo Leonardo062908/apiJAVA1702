@@ -1,68 +1,74 @@
 package br.com.fiap.api_rest.service;
 
+import br.com.fiap.api_rest.controller.LivroController;
 import br.com.fiap.api_rest.dto.LivroRequest;
+import br.com.fiap.api_rest.dto.LivroRequestDTO;
 import br.com.fiap.api_rest.dto.LivroResponse;
-import br.com.fiap.api_rest.model.Categoria;
+import br.com.fiap.api_rest.dto.LivroResponseDTO;
 import br.com.fiap.api_rest.model.Livro;
-import br.com.fiap.api_rest.repository.CategoriaRepository;
 import br.com.fiap.api_rest.repository.LivroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class LivroService {
-
     @Autowired
-    private LivroRepository livroRepository;
+    LivroRepository livroRepository;
 
-    @Autowired
-    private CategoriaRepository categoriaRepository;
-
-    // ✅ Converte LivroRequest para Livro e salva no banco
-    public LivroResponse salvarLivro(LivroRequest livroRequest) {
-        Livro livro = requestToLivro(livroRequest);
-        livro = livroRepository.save(livro);
-        return livroToResponse(livro);
-    }
-
-    // ✅ Converte LivroRequest para Livro (não salva)
     public Livro requestToLivro(LivroRequest livroRequest) {
         Livro livro = new Livro();
         livro.setAutor(livroRequest.getAutor());
         livro.setTitulo(livroRequest.getTitulo());
         livro.setPreco(livroRequest.getPreco());
+        livro.setCategoria(livroRequest.getCategoria());
         livro.setIsbn(livroRequest.getIsbn());
-
-        // Buscar Categoria pelo ID
-        Optional<Categoria> categoria = categoriaRepository.findById(livroRequest.getCategoriaId());
-        if (categoria.isEmpty()) {
-            throw new RuntimeException("Categoria com ID " + livroRequest.getCategoriaId() + " não encontrada");
-        }
-        livro.setCategoria(categoria.get());
-
         return livro;
     }
 
-    // ✅ Converte Livro para LivroResponse
+    public Livro recordToLivro(LivroRequestDTO livroRecord) {
+        Livro livro = new Livro();
+        livro.setTitulo(livroRecord.titulo());
+        livro.setAutor(livroRecord.autor());
+        return livro;
+    }
+
     public LivroResponse livroToResponse(Livro livro) {
-        return new LivroResponse(livro.getTitulo(), livro.getAutor(), livro.getPreco());
+        return new LivroResponse(livro.getId(), livro.getAutor() + " - " + livro.getTitulo());
     }
 
-    // ✅ Lista todos os livros no formato de resposta
+    public LivroResponseDTO livroToResponseDTO(Livro livro, boolean self) {
+        Link link;
+        if (self) {
+            link = linkTo(methodOn(LivroController.class).readLivro(livro.getId())).withSelfRel();
+        } else {
+            link = linkTo(methodOn(LivroController.class).readLivros(0)).withRel("Lista de Livros");
+        }
+        return new LivroResponseDTO(livro.getId(), livro.getAutor() + " - " + livro.getTitulo(), link);
+    }
+
     public List<LivroResponse> livrosToResponse(List<Livro> livros) {
-        return livros.stream()
-                .map(this::livroToResponse)
-                .collect(Collectors.toList());
+        List<LivroResponse> listaLivros = new ArrayList<>();
+        for (Livro livro : livros) {
+            listaLivros.add(livroToResponse(livro));
+        }
+        return listaLivros;
     }
 
-    // ✅ Busca um livro por ID
-    public LivroResponse buscarLivroPorId(Long id) {
-        Livro livro = livroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Livro com ID " + id + " não encontrado"));
-        return livroToResponse(livro);
+    public Page<LivroResponse> findAll(Pageable pageable) {
+        //return livroRepository.findAll(pageable).map(livro -> livroToResponse(livro));
+        return livroRepository.findAll(pageable).map(this::livroToResponse);
+    }
+
+    public Page<LivroResponseDTO> findAllDTO(Pageable pageable) {
+        return livroRepository.findAll(pageable).map(livro -> livroToResponseDTO(livro, true));
     }
 }
