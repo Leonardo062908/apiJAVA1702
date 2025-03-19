@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
+import java.util.Date;
+
 @Entity
 public class Livro {
     @Id
@@ -34,6 +36,25 @@ public class Livro {
     public void setBiblioteca(Biblioteca biblioteca) {
         this.biblioteca = biblioteca;
     }
+
+    public boolean isEbook() {
+        return ebook;
+    }
+
+    public void setEbook(boolean ebook) {
+        this.ebook = ebook;
+    }
+
+    public Date getDataLancamento() {
+        return dataLancamento;
+    }
+
+    public void setDataLancamento(Date dataLancamento) {
+        this.dataLancamento = dataLancamento;
+    }
+
+    private boolean ebook;
+    private Date dataLancamento;
 
     public Long getId() {
         return id;
