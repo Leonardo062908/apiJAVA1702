@@ -20,7 +20,7 @@ public class Livro {
     @ManyToOne
     @JoinColumn(name = "id_biblioteca")
     private Biblioteca biblioteca;
-
+    // COMENTARIO PARA GARANTIR O AMEND NO COMMIT
     public List<Autor> getAutores() {
         return autores;
     }
