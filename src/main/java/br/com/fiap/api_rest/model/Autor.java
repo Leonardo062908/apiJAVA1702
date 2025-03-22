@@ -11,14 +11,9 @@ public class Autor {
     private Long id;
     private String nome;
     @ManyToMany(cascade = CascadeType.ALL)
-    // tabela autor_livro
-    // colunas id_livro, id_autor
-    // 1, 1
-    // 2, 2
-    // 5, 2
     @JoinTable(name = "autor_livro",
-            joinColumns = @JoinColumn(name = "id_livro", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "id_autor", referencedColumnName = "id"))
+            joinColumns = @JoinColumn(name = "id_autor", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "id_livro", referencedColumnName = "id"))
     private List<Livro> livros;
 
     public Long getId() {
